@@ -1,4 +1,4 @@
 # Wilson-Inversion's Blog
 
-## [$\color{black}记录$](Wilson-Inversion.github.io/article/0)
+## [$\color{black}记录$](https://Wilson-Inversion.github.io/article/0)
 
