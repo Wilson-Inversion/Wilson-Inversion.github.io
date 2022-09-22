@@ -256,7 +256,7 @@ $$
 \begin{aligned}
 \sum\limits_{i_1=l+1}^{r}\sum\limits_{i_2=l+1}^{r}...\sum\limits_{i_n=l+1}^{r}[\gcd(i)=1]
 &=\sum\limits_{i_1=l+1}^{r}\sum\limits_{i_2=l+1}^{r}...\sum\limits_{i_n=l+1}^{r}\sum\limits_{e|\gcd(i)}\mu(e)\\
-&=\sum\limits_{e=1}^{r}\mu(e)(\lfloor\frac{r}{e}\rfloor-\lfloor\frac{l}{e}\rfloor)^2
+&=\sum\limits_{e=1}^{r}\mu(e)(\lfloor\frac{r}{e}\rfloor-\lfloor\frac{l}{e}\rfloor)^n
 \end{aligned}
 \end{equation}
 $$
