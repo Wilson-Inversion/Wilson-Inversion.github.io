@@ -38,23 +38,23 @@
 
 首先需要一个奇根（$1$ 号节点）和一个偶根（$0$ 号节点），并且偶根的 $fail$ 指针连向奇根，奇根的 $len=-1$，偶根 $len=0$，初始的 $now$ 为奇根，如图
 
-![image](https://cdn.luogu.com.cn/upload/image_hosting/qfj7v3vj.png)
+![image](./1.png)
 
 之后插入第一个字符 $a$：从 $now$ 开始找，找到一个最长的回文后缀且这个回文后缀的前一个字符与当前字符相同，即 $s_i=s_{i-len_{now}-1}$，没找到就跳 $fail$ ，容易证明只要一定会找到（跳到奇根就找到了），现在 $now=1$，并发现 $son_{now\texttt{ } 0}=0$，所以要新建一个节点 $2$，$2$ 的父亲是 $1$，$len_2=len_1+2=1$，之后找 $fail$ ，一样暴力跳到一个最长的回文后缀且这个回文后缀的前一个字符与当前字符相同，这个节点还是 $1$ ，那么 $a$ 的 $fail$ 指针就是 $son_{1\texttt{ }0}=0$，于是自动机如下图：
 
-![image](https://cdn.luogu.com.cn/upload/image_hosting/8y66bx0p.png)
+![image](./2.png)
 
 再插入一个字符 $b$，找到他的父亲为 $1$，$fail$ 还是 $0$。
 
-![image](https://cdn.luogu.com.cn/upload/image_hosting/vwz1r4rt.png)
+![image](./3.png)
 
 之后再插入 $a$，发现父亲是 $3$，$fail$ 是 $1$。
 
-![image](https://cdn.luogu.com.cn/upload/image_hosting/4183b7a3.png)
+![image](./4.png)
 
 以此类推，把所有字符全插进去。最终构造的回文自动机就是这个样子的：
 
-![image](https://cdn.luogu.com.cn/upload/image_hosting/udl34pnl.png)
+![image](./5.png)
 
 $get$_$fail(x,y)$ 函数（找到 $x$ 的一个最长的回文后缀且这个回文后缀的前一个字符与第 $y$ 个字符相同）
 
