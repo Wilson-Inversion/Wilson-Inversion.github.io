@@ -3,3 +3,5 @@
 ### [$\color{black}\text{Codeforces 1726 题解}$](https://wilson-inversion.github.io/article/1)
 
 ### [$\color{black}\text{莫比乌斯反演，杜教筛}$](https://wilson-inversion.github.io/article/2)
+
+### [$\color{black}\text{回文自动机}$](https://wilson-inversion.github.io/article/3)
