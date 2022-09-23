@@ -348,7 +348,7 @@ $f(x)$ 是积性函数，求 $f(x)$ 的前缀和。
 $$
 \begin{equation}
 \begin{aligned}
-\sum\limits_{i=1}^{n}(f*g)(n)
+\sum\limits_{i=1}^{n}(f*g)(i)
 &=\sum\limits_{i=1}^{n}\sum\limits_{j|i}g(j)f(\frac{i}{j})\\
 &=\sum\limits_{j=1}^{n}g(j)\sum\limits_{i=1}^{\lfloor\frac{n}{j}\rfloor}f(i)\\
 &=\sum\limits_{i=1}^{n}g(i)S(\lfloor\frac{n}{i}\rfloor)
