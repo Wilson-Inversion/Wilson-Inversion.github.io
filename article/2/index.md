@@ -316,7 +316,7 @@ $$
 \end{aligned}
 \end{equation}
 $$
-设 $S_1(x)=\sum\limits_{i=1}^{n}i^k$ ，$S_2(x)=\sum\limits_{i=1}^{n}S_1(i)$，$g(x)=\sum\limits_{i=1}^{x}\sum\limits_{j=1}^{x}(i+j)^k$。
+设 $S_1(x)=\sum\limits_{i=1}^{x}i^k$ ，$S_2(x)=\sum\limits_{i=1}^{x}S_1(i)$，$g(x)=\sum\limits_{i=1}^{x}\sum\limits_{j=1}^{x}(i+j)^k$。
 $$
 \begin{equation}
 \begin{aligned}
