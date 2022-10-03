@@ -1,397 +1,409 @@
-<h1 align="center">Codeforces 1726 题解</h1>
+<h1 align="center">莫比乌斯反演，杜教筛</h1>
 
-[比赛传送门](https://codeforces.com/contest/1726)
+## 积性函数
 
-## A
+**定义**：若 $a$ 与 $b$ 互质，且 $f(ab)=f(a)f(b)$，则 $f(x)$ 是积性函数。
 
-### 题意
+## 狄利克雷卷积
 
-给定一个长度为 $n$ 数组 $a$，你可以选择一个区间 $[l,r]$，并选择一个位置将这段序列断开，把左面的部分接到右面，求 $a_n-a_1$ 的最大值。
+$$
+\begin{equation}
+(f*g)(n)=\sum\limits_{d|n}f(d)g(\frac{n}{d})
+\end{equation}
+$$
 
-### 题解
+**性质**：
 
-存在三种情况：
+1. 若 $f$ 和 $g$ 都是积性函数，则 $f*g$ 是积性函数。
 
-1. 选取区间为 $[1,n]$，答案为 $\max\limits_{i=1}^{n-1}(a_i-a_{i+1})$。
-2. 选取区间为 $[2,n]$，答案为 $(\max\limits_{i=2}^{n}a_i)-a_1$。
-3. 选取区间为 $[1,n-1]$，答案为 $a_n-(\min\limits_{i=1}^{n-1}a_i)$。
+* 证明：设 $a$ 与 $b$ 互质，$t=f*g$，$t(a)=\sum\limits_{d|a}f(d)g(\frac{a}{d})$，$t(b)=\sum\limits_{d|b}f(d)g(\frac{b}{d})$，$t(ab)=\sum\limits_{d|ab}f(d)g(\frac{ab}{d})$，则：
 
-取三者最大值即可。
+$$
+\begin{equation}
+\begin{aligned}
+t(a)t(b)
+&=\sum\limits_{d_1|a}f(d_1)g(\frac{a}{d_1})\sum\limits_{d_2|b}f(d_2)g(\frac{b}{d_2})\\ 
+&=\sum\limits_{d_1|a}\sum\limits_{d_2|b}f(d_1)g(\frac{a}{d_1})f(d_2)g(\frac{b}{d_2})\\
+&=\sum\limits_{d_1|a}\sum\limits_{d_2|b}f(d_1d_2)g(\frac{ab}{d_1d_2})\\
+&=\sum\limits_{d|ab}f(d)g(\frac{ab}{d})\\
+&=t(ab)
+\end{aligned}
+\end{equation}
+$$
 
-### 代码
+2. 交换律：$f*g=g*f$。
 
-```c++
-// Problem: A. Mainak and Array
-// Contest: Codeforces - Codeforces Round #819 (Div. 1 + Div. 2) and Grimoire of Code Annual Contest 2022
-// URL: https://codeforces.com/contest/1726/problem/A
-// Memory Limit: 256 MB
-// Time Limit: 1000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
+3. 结合律：$(f*g)*h=f*(g*h)$。
 
-#include<bits/stdc++.h>
-#define miny(x,y) x=min(x,y)
-#define maxy(x,y) x=max(x,y)
-using namespace std;
-namespace Std{
-void read(int &x){
-	x=0;
-	int y=1;
-	char c=getchar();
-	while(c<'0'||c>'9'){
-		if(c=='-')y=-1;
-		c=getchar();
-	}
-	while(c>='0'&&c<='9'){
-		x=(x<<1)+(x<<3)+(c&15);
-		c=getchar();
-	}
-	x*=y;
-}
-int t,n,a[2010];
-void main(){
-	read(t);
-	while(t--){
-		read(n);
-		int mx=0,mn=1000000000;
-		for(int i=1;i<=n;++i){
-			read(a[i]);
-			maxy(mx,a[i]);
-			miny(mn,a[i]);
-		}
-		int ans=0;
-		for(int i=2;i<=n;++i)maxy(ans,a[i-1]-a[i]);
-		if(a[n]==mx||a[1]==mn)ans=mx-mn;
-		ans=max(ans,max(mx-a[1],a[n]-mn));
-		printf("%d\n",ans);
-	}
-}
-}  // namespace Std
-int main(){
-	Std::main();
-	return 0;
-}
-```
+* 证明：
 
-## B
+  $$
+  \begin{equation}
+  \begin{aligned}
+  ((f*g)*h)(n)
+  &=\sum\limits_{z|n}(f*g)(z)h(\frac{n}{z})\\
+  &=\sum\limits_{z|n}\sum\limits_{x|z}f(x)g(\frac{z}{x})h(\frac{n}{z})\\
+  &=\sum\limits_{xyz=n}f(x)g(y)h(z)
+  \end{aligned}
+  \end{equation}
+  $$
 
-### 题意
+  后者同理，命题得证。
 
-一个长度为 $n$ 的正整数数组 $a$，定义一个数组 $p$，$p_i$ 表示原数组中所有严格小于 $a_i$ 的数的异或和，当且仅当 $\forall 1\le i\le n$，$p_i=0$ 时，称数组 $a$ 是有趣的。给定 $n$ 和 $m$，要求构造一个长度为 $n$ 数组 $a$，使得 $a$ 中元素和为 $m$，且 $a$ 是有趣的，要求判无解。
+**常用函数**：
+$$
+\begin{equation}
+\varepsilon(n)=[n=1]
+\end{equation}
+$$
 
-### 题解
+$$
+\begin{equation}
+\sigma_k(n)=\sum\limits_{d|n}d^k
+\end{equation}
+$$
 
-首先，这题需要一个结论，$\forall i\le 1\le n$，如果 $a_i$ 不是数组中的最大值，则数组中元素 $a_i$ 的个数为偶数。
+$$
+\begin{equation}
+\text{Id}_k(n)=n^k
+\end{equation}
+$$
 
-证明：~~其实是显然的，~~比 $a_i$ 小的数异或和为 $0$，假设存在一个比 $a_i$ 大的数组中的最小值 $a_j$，为了满足 $p_j=0$，$a_i$ 的个数必须是偶数。
+$$
+\begin{equation}
+\varphi(n)=\sum\limits_{i=1}^{n}[gcd(i,n)=1]
+\end{equation}
+$$
 
-开始分类讨论：
+## 莫比乌斯函数
 
-1. $m<n$：无解
-2. $n$ 是奇数：构造 $\forall 1\le i<n$，$a_i=1$，$a_n=m-n+1$。
-3. $n$ 是偶数，$m$ 是奇数：由于所有不是最大值的数的个数为偶数，则最大值的个数也需要是偶数，假设我们让最大值是 $x$，有 $2\times y$ 个最大值，则我们相当于要继续去构造一个长度为 $n-2\times y$，元素和为 $m-x\times y\times 2$ 的数组，发现这两个数依然分别是偶数和奇数，这个问题会被递归下去，而最终 $n=0$ 时，$m$ 依然是奇数，所以 $m\ne 0$ ，所以无解。
-4. $n$ 是偶数，$m$ 是偶数：构造 $\forall 1\le i<n-1$，$a_i=1$，$a_{n-1}=a_n=\frac{m-n+2}{2}$。
+**定义**：
+$$
+\mu(n)=
+\left\{\begin{array}{l}
+1 &n=1 \\ 
+(-1)^{k} &n=a_1\times a_2\times……\times a_k,a_i\in prime \\ 
+0 &otherwise
+\end{array}\right.
+$$
 
-### 代码
+**常用卷积**：
 
-```c++
-// Problem: B. Mainak and Interesting Sequence
-// Contest: Codeforces - Codeforces Round #819 (Div. 1 + Div. 2) and Grimoire of Code Annual Contest 2022
-// URL: https://codeforces.com/contest/1726/problem/B
-// Memory Limit: 256 MB
-// Time Limit: 1000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
+1. $$
+   \begin{equation}
+   f*\varepsilon=f
+   \end{equation}
+   $$
+   
+2. 
+   $$
+   \begin{equation}
+   \mu*\text{Id}_0=\varepsilon(n)
+   \end{equation}
+   $$
 
-#include<bits/stdc++.h>
-using namespace std;
-namespace Std{
-void read(int &x){
-	x=0;
-	int y=1;
-	char c=getchar();
-	while(c<'0'||c>'9'){
-		if(c=='-')y=-1;
-		c=getchar();
-	}
-	while(c>='0'&&c<='9'){
-		x=(x<<1)+(x<<3)+(c&15);
-		c=getchar();
-	}
-	x*=y;
-}
-int t,n,m;
-void main(){
-	read(t);
-	while(t--){
-		read(n);read(m);
-		if(m<n)puts("No");
-		else{
-			if(n&1){
-			puts("Yes");for(int i=1;i<n;++i)printf("1 ");
-			printf("%d\n",m-n+1);}else{
-				if(m&1)puts("No");else{
-					puts("Yes");
-					for(int i=1;i<n-1;++i)printf("1 ");
-					printf("%d %d\n",(m-n+2)/2,(m-n+2)/2);
-				}
-			}
-		}
-	}
-}
-}  // namespace Std
-int main(){
-	Std::main();
-	return 0;
-}
-```
+* 证明：
+  
+  $n=1$ 时明显成立，$n\ne 1$ 时，设 $n=\prod\limits_{i=1}^{k}p_i^{c_i}$，$n'=\prod\limits_{i=1}^{k}p_i$，则：
+  $$
+  \begin{equation}
+  \sum\limits_{d|n}\mu(d)=\sum\limits_{d|n'}\mu(d)=\sum\limits_{i=0}^{k}\binom{k}{i}(-1)^i=(1+(-1))^k
+  \end{equation}
+  $$
+  
+  当 $k\ne 0$ 时，$(1+(-1))^k$ 恒等于 $1$。
+  
+  即 $\mu*\text{Id}_0=\varepsilon(n)$。
+  
+3. 
+   $$
+   \begin{equation}
+   \varphi*\text{Id}_0=\text{Id}_1
+   \end{equation}
+   $$
+   
+* 证明：仅考虑实际意义，$\sum\limits_{d|n}\varphi(\frac{n}{d})$ 的实际含义为所有 $\le n$ 的数中与 $n$ 的 $\gcd$ 为 $d$ 的数的数量，而枚举的 $d$ 包含了 $\gcd$ 的所有情况，故结论成立。
 
-## C
+4. 
+   $$
+   \begin{equation}
+   \mu*\text{Id}_1=\varphi
+   \end{equation}
+   $$
 
-### 题意
+* 证明：
+   $$
+   \begin{equation}
+   \begin{aligned}
+   \mu*\text{Id}_1
+   &=\mu*\text{Id}_0*\varphi\\
+   &=\varepsilon*\varphi\\
+   &=\varphi
+   \end{aligned}
+   \end{equation}
+   $$
 
-给定一个长度为 $2\times n$ 的平衡括号序列，以及一个图，$\forall 1\le l<r\le 2\times n$，如果这个括号序列的 $[l,r]$ 子串是平衡的，则图上节点 $l$ 和节点 $r$ 有连边，否则没有。求图的连通块个数。
+## 莫比乌斯反演
 
-### 题解
+如果 $f(n)=\sum\limits_{d|n}g(d)$，则 $g(n)=\sum\limits_{d|n}\mu(d)f(\frac{n}{d})$。
 
-我们考虑每一条边的 $l$ 和 $r$，$l$ 一定是左括号，$r$ 一定是右括号，所以我们只处理右括号即可得到所有图上边。并且我们发现，两个平衡序列拼起来一定是平衡序列。既然整个序列是平衡的，每一个右括号 $r$ 向左一定有至少一个平衡点，我们考虑找到离他最近的一个平衡点 $l$。如果 $l-1$ 这个位置是右括号，正如上面所说，它的左面也有平衡点，所以相当于两个平衡括号序列拼在了一起，当前连通块与之前的连通块连在了一起，就没有新的连通块产生。但如果 $l-1$ 是左括号，向左没有平衡点，$r$ 和 $l$ 会形成单独的连通块，连通块个数 $+1$。
+* 证明：
+  $$
+  f=g*\text{Id}_0\\
+  f*\mu=(g*\text{Id}_0)*\mu\\
+  g=f*\mu
+  $$
 
-### 代码
+### 例题
 
-```c++
-// Problem: C. Jatayu's Balanced Bracket Sequence
-// Contest: Codeforces - Codeforces Round #819 (Div. 1 + Div. 2) and Grimoire of Code Annual Contest 2022
-// URL: https://codeforces.com/contest/1726/problem/C
-// Memory Limit: 256 MB
-// Time Limit: 2000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
+#### [$\color{black}\text{P4450 双亲数}$](https://www.luogu.com.cn/problem/P4450)
 
-#include<bits/stdc++.h>
-using namespace std;
-namespace Std{
-void read(int &x){
-	x=0;
-	int y=1;
-	char c=getchar();
-	while(c<'0'||c>'9'){
-		if(c=='-')y=-1;
-		c=getchar();
-	}
-	while(c>='0'&&c<='9'){
-		x=(x<<1)+(x<<3)+(c&15);
-		c=getchar();
-	}
-	x*=y;
-}
-int t,n,lst[400010];
-char s[400010];
-void main(){
-	read(t);
-	while(t--){
-		read(n);
-		scanf("%s",s+1);
-		int sum=0,ans=0;
-		for(int i=1;i<=2*n;++i){
-			sum+=((s[i]=='(')?(1):(-1));
-			if(s[i]==')'){
-				int tmp=lst[sum];
-				if(s[tmp]=='('||(!tmp))++ans;
-			}else lst[sum-1]=i-1;
-		}
-		printf("%d\n",ans);
-		for(int i=1;i<=2*n;++i){
-			sum+=((s[i]=='(')?(1):(-1));
-			lst[sum]=0;
-		}
-	}
-}
-}  // namespace Std
-int main(){
-	Std::main();
-	return 0;
-}
-```
+题意：求 $\sum\limits_{i=1}^{A}\sum\limits_{j=1}^{B}[\gcd(i,j)=D]$，$1\le A,B\le 10^6$，$1\le D\le \min(A,B)$。
 
-## D
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{A}\sum\limits_{j=1}^{B}[\gcd(i,j)=D]
+&=\sum\limits_{i=1}^{\lfloor\frac{A}{D}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{B}{D}\rfloor}[\gcd(i,j)=1]\\
+&=\sum\limits_{i=1}^{\lfloor\frac{A}{D}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{B}{D}\rfloor}\sum\limits_{e|\gcd(i,j)}\mu(e)\\
+&=\sum\limits_{e=1}^{\min(\lfloor\frac{A}{D}\rfloor,\lfloor\frac{B}{D}\rfloor)}\mu(e)\lfloor\frac{A}{De}\rfloor\lfloor\frac{B}{De}\rfloor
+\end{aligned}
+\end{equation}
+$$
 
-### 题意
+#### [$\color{black}\text{P1390 公约数的和}$](https://www.luogu.com.cn/problem/P1390)
 
-给定一个 $n$ 个点，$m$ 条边的连通图，$n-1\le m\le n+2$，要求把边染成红蓝两种颜色，设删除蓝色的边之后连通块个数为 $c_1$，删除红边为 $c_2$，求一种方案使 $c_1+c_2$ 最小。
+题意：求 $\sum\limits_{i=1}^{n}\sum\limits_{j=i+1}^{n}\gcd(i,j)$，$2\le n\le 2\times10^6$。
 
-### 题解
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=i+1}^{n}\gcd(i,j)
+&=\frac{(\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n}\gcd(i,j))-(\sum\limits_{i=1}^{n}i)}{2}\\
+&=\frac{(\sum\limits_{d=1}^{n}\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{d}\rfloor}[\gcd(i,j)=1])-(\sum\limits_{i=1}^{n}i)}{2}\\
+&=\frac{(\sum\limits_{d=1}^{n}d\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{d}\rfloor}[\gcd(i,j)=1])-(\sum\limits_{i=1}^{n}i)}{2}\\
+&=\frac{(\sum\limits_{d=1}^{n}d\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)(\lfloor\frac{n}{de}\rfloor)^2)-(\sum\limits_{i=1}^{n}i)}{2}\\
+&=\frac{(\sum\limits_{T=1}^{n}\sum\limits_{d|T}d\mu(\frac{T}{d})(\lfloor\frac{n}{T}\rfloor)^2)-(\sum\limits_{i=1}^{n}i)}{2}\\
+&=\frac{(\sum\limits_{T=1}^{n}\varphi(T)(\lfloor\frac{n}{T}\rfloor)^2)-(\sum\limits_{i=1}^{n}i)}{2}
+\end{aligned}
+\end{equation}
+$$
 
-我们考虑一条边的最优贡献是将连通块的个数减少 $1$，这种情况的前提是连接的两个顶点原来不连通，即连完没有环。那么我们可以先染一棵树，然后会剩下三条非树边，让这三条非树边无环。我们随便找一棵生成树，如果剩下的三条边成环了，我们直接把其中一条边删掉，设这条边为 $(u,v)$，则可以从树上 $u$ 到 $v$ 的路径上任选一条边，这样剩余三条边一定无环。当然如果觉得这样麻烦，你可以选择：一但成环，就将边随机打乱重跑，直到不成环，几乎是卡不掉的。
+#### [$\color{black}\text{P2257 YY的GCD}$](https://www.luogu.com.cn/problem/P2257)
 
-### 代码
+题意：多测，给定 $n,m$，求 $1≤x≤n$，$1≤y≤m$ 且 $gcd⁡(x,y)$ 为质数的 $(x,y)$ 有多少对。$1\le T\le 10^4$，$1\le n,m\le 10^6$。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{k=2,k\in prime}^{n}\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}[\gcd(i,j)=k]
+&=\sum\limits_{k=2,k\in prime}^{n}\sum\limits_{i=1}^{\lfloor\frac{n}{k}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{k}\rfloor}[\gcd(i,j)=1]\\
+&=\sum\limits_{k=2,k\in prime}^{n}\sum\limits_{i=1}^{\lfloor\frac{n}{k}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{k}\rfloor}\sum\limits_{e|\gcd(i,j)}\mu(e)\\
+&=\sum\limits_{k=2,k\in prime}\sum\limits_{e=1}^{\lfloor\frac{n}{k}\rfloor}\mu(e)\lfloor\frac{n}{ke}\rfloor \lfloor\frac{m}{ke}\rfloor\\
+&=\sum\limits_{T=1}^{n}\lfloor\frac{n}{T}\rfloor \lfloor\frac{m}{T}\rfloor\sum\limits_{k|T,k\in prime}\mu(\frac{T}{k})
+\end{aligned}
+\end{equation}
+$$
+后面的部分可以通过外层枚举 $k$，内层枚举 $\frac{T}{k}$ 来预处理。
 
-```c++
-// Problem: D. Edge Split
-// Contest: Codeforces - Codeforces Round #819 (Div. 1 + Div. 2) and Grimoire of Code Annual Contest 2022
-// URL: https://codeforces.com/contest/1726/problem/D
-// Memory Limit: 256 MB
-// Time Limit: 2000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
+#### [$\color{black}\text{P1829 [国家集训队]Crash的数字表格}$](https://www.luogu.com.cn/problem/P1829)
 
-#include<bits/stdc++.h>
-using namespace std;
-namespace Std{
-void read(int &x){
-	x=0;
-	int y=1;
-	char c=getchar();
-	while(c<'0'||c>'9'){
-		if(c=='-')y=-1;
-		c=getchar();
-	}
-	while(c>='0'&&c<='9'){
-		x=(x<<1)+(x<<3)+(c&15);
-		c=getchar();
-	}
-	x*=y;
-}
-int t,n,m,f[1000010];
-int find(int x){
-	return f[x]==x?x:f[x]=find(f[x]);
-}
-struct node{
-	int l,r,id;
-	node(){}
-	node(int _l,int _r,int _id){
-		l=_l,r=_r,id=_id;
-	}
-}k[1000010];
-int sta[1000010],col[1000010],top;
-bool work(void){
-	for(int i=1;i<=n;++i)f[i]=i;
-	top=0;
-	for(int i=1;i<=m;++i){
-		int fx=find(k[i].l),fy=find(k[i].r);
-		if(fx==fy){
-			sta[++top]=i;
-		}else f[fx]=fy;
-	}
-	for(int i=1;i<=n;++i)f[i]=i;
-	for(int i=1;i<=top;++i){
-		int fx=find(k[sta[i]].l),fy=find(k[sta[i]].r);
-		if(fx==fy)return 0;
-		f[fx]=fy;
-	}
-	return 1;
-}
-void main(){
-	read(t);
-	while(t--){
-		read(n);read(m);
-		int u,v;
-		for(int i=1;i<=n;++i)f[i]=i;
-		for(int i=1;i<=m;++i){
-			read(u);read(v);
-			k[i]=node(u,v,i);
-		}
-		while(!work())random_shuffle(k+1,k+1+m);
-		int now=1;
-		for(int i=1;i<=m;++i){
-			if(now<=top&&i==sta[now])col[k[i].id]=1,++now;
-			else col[k[i].id]=0;
-		}
-		for(int i=1;i<=m;++i)printf("%d",col[i]);
-		puts("");
-	}
-}
-}  // namespace Std
-int main(){
-	Std::main();
-	return 0;
-}
-```
+题意：给定 $n,m$，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\text{lcm}(i,j)$，$1\le n,m\le10^7$。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\text{lcm}(i,j)
+&=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\frac{ij}{\gcd(i,j)}\\
+&=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\frac{i}{\gcd(i,j)}\frac{j}{\gcd(i,j)}\gcd(i,j)\\
+&=\sum\limits_{d=1}^{n}d\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{d}\rfloor}ij[\gcd(i,j)=1]\\
+&=\sum\limits_{d=1}^{n}d\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)e^2\frac{\lfloor\frac{n}{de}\rfloor(\lfloor\frac{n}{de}\rfloor+1)}{2}\frac{\lfloor\frac{m}{de}\rfloor(\lfloor\frac{m}{de}\rfloor+1)}{2}\\
+\end{aligned}
+\end{equation}
+$$
+前后分别数论分块即可。
 
-## E
+#### [$\color{black}\text{P3327 [SDOI2015]约数个数和}$](https://www.luogu.com.cn/problem/P3327)
 
-### 题意
+题意：多测，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}d(ij)$，$d(x)$ 表示 $x$ 的约数个数（$\sigma_1(x)$）。$1\le T,n,m\le5\times10^4$
 
-一个长度为 $n$ 的排列 $p$，他的逆排列 $p^{-1}$ 满足 $p_{p_i^{-1}}=i$，求有多少个长度为 $n$ 的排列 $p$，满足 $\forall i\le 1\le n$，$|p_i-p_i^{-1}|\le 1$。
+结论：$d(ij)=\sum\limits_{k|i}\sum\limits_{l|j}[\gcd(k,l)=1]$。
 
-### 题解
+证明：我们钦定 $ij$ 的一个约数 $k$，考虑 $k$ 的一个质因子 $p$，在 $i$ 中有 $p_i$ 个，$j$ 中 $p_j$ 个，$k$ 中 $p_k$ 个，分两种情况：
 
-经过手画发现，最终 $p$ 只有一下四种置换环：
+1. $p_k\le p_i$，我们让 $k$ 中的所有 $p$ 这个因子全部从 $i$ 中选。
+2. $p_k>p_i$，这种情况我们可以钦定，不从 $i$ 中选，仅从 $j$ 中选择 $p_k-p_i$ 个。
 
-1. $a_i=i$。
-2. $a_i=j$，$a_j=i$。
-3. $a_i=j$，$a_{i+1}=j-1$，$a_{j-1}=i$，$a_j=i+1$。
-4. $a_i=j$，$a_{i+1}=j+1$，$a_j=i+1$，$a_{j+1}=i$。
+以上情况均满足上式，且包含了所有情况，故命题得证。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}d(ij)
+&=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\sum\limits_{k|i}\sum\limits_{l|j}[\gcd(k,l)=1]\\
+&=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}[\gcd(i,j)=1]\lfloor\frac{n}{i}\rfloor\lfloor\frac{m}{j}\rfloor\\
+&=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\sum\limits_{e|\gcd(i,j)}\mu(e)\lfloor\frac{n}{i}\rfloor\lfloor\frac{m}{j}\rfloor\\
+&=\sum\limits_{e=1}^{n}\mu(e)\sum\limits_{i=1}^{\lfloor\frac{n}{e}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{e}\rfloor}\lfloor\frac{n}{ie}\rfloor\lfloor\frac{m}{je}\rfloor
+\end{aligned}
+\end{equation}
+$$
+设 $f(x)=\sum\limits_{i=1}^{x}\lfloor\frac{x}{i}\rfloor$，原式变为 $\sum\limits_{e=1}^{n}\mu(e)f(\lfloor\frac{n}{e}\rfloor)f(\lfloor\frac{m}{e}\rfloor)$，$f(x)$ 可以 $O(n\sqrt{n})$ 预处理，然后整除分块即可。
 
-如果只考虑一元环和二元环，可以直接预处理。设 $f_i$ 表示长度为 $i$ 的只有一元环和二元环的排列的个数，则 $f_i=f_{i-2}*(i-1)+f_{i-1}$。
+#### [$\color{black}\text{P3172 [CQOI2015]选数}$](https://www.luogu.com.cn/problem/P3172)
 
-之后考虑四元环的处理，我们枚举有 $i$ 个四元环，则需要 $2\times i$ 组相邻数对，方案数为 $\tbinom{n-2\times i}{2\times i}$，我们发现，四元环的两个相邻数对总有一组是大小反转的，所以需要选出一半是反转的，反转的与未反转的任意顺序连接，则总方案数为 $\sum\limits_{i=0}^{\lfloor \frac{n}{4}\rfloor}\tbinom{n-2\times i}{2\times i}\times \tbinom{2\times i}{i}\times (i!)\times f_{n-4\times i}$。
+题意：给定 $l,r$，有 $n$ 个数，每个数的值可以取 $[l,r]$ 之间的任何数（可重），求这些数的最大公约数恰好为 $k$ 的情况数。$1\le n,k\le10^9$，$1\le l\le r\le 10^9$，$r-l\le 10^5$。
 
-### 代码
+我们可以 $l\gets\lfloor\frac{l-1}{k}\rfloor$，$r\gets\lfloor\frac{r}{k}\rfloor$，转化为每个数的取值为 $[l+1,r]$，求最大公约数是 $1$ 的方案数。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i_1=l+1}^{r}\sum\limits_{i_2=l+1}^{r}...\sum\limits_{i_n=l+1}^{r}[\gcd(i)=1]
+&=\sum\limits_{i_1=l+1}^{r}\sum\limits_{i_2=l+1}^{r}...\sum\limits_{i_n=l+1}^{r}\sum\limits_{e|\gcd(i)}\mu(e)\\
+&=\sum\limits_{e=1}^{r}\mu(e)(\lfloor\frac{r}{e}\rfloor-\lfloor\frac{l}{e}\rfloor)^n
+\end{aligned}
+\end{equation}
+$$
+看起来像杜教筛，杜教筛是这题的一种解法，但也可以不用。
 
-```c++
-// Problem: E. Almost Perfect
-// Contest: Codeforces - Codeforces Round #819 (Div. 1 + Div. 2) and Grimoire of Code Annual Contest 2022
-// URL: https://codeforces.com/contest/1726/problem/E
-// Memory Limit: 256 MB
-// Time Limit: 3000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
+我们考虑 $\gcd$ 的值的范围：
 
-#include<bits/stdc++.h>
-#define int long long
-#define mod 998244353
-using namespace std;
-namespace Std{
-void read(int &x){
-	x=0;
-	int y=1;
-	char c=getchar();
-	while(c<'0'||c>'9'){
-		if(c=='-')y=-1;
-		c=getchar();
-	}
-	while(c>='0'&&c<='9'){
-		x=(x<<1)+(x<<3)+(c&15);
-		c=getchar();
-	}
-	x*=y;
-}
-int qp(int x,int y){
-	int cmp=1;
-	while(y){
-		if(y&1)(cmp*=x)%=mod;
-		(x*=x)%=mod;
-		y>>=1;
-	}
-	return cmp;
-}
-int fac[300010],ifac[300010],f[300010],n,t;
-int C(int x,int y){
-	if(y>x)return 0;
-	return fac[x]*ifac[y]%mod*ifac[x-y]%mod;
-}
-void main(){
-	fac[0]=1;
-	for(int i=1;i<=300000;++i)fac[i]=(fac[i-1]*i)%mod;
-	ifac[300000]=qp(fac[300000],mod-2);
-	for(int i=299999;~i;--i)ifac[i]=(ifac[i+1]*(i+1))%mod;
-	f[0]=f[1]=1;
-	for(int i=2;i<=300000;++i)f[i]=(f[i-2]*(i-1)+f[i-1])%mod;
-	read(t);
-	while(t--){
-		read(n);
-		int ans=0;
-		for(int i=0;i*4<=n;++i){
-			ans+=C(n-2*i,2*i)*C(2*i,i)%mod*fac[i]%mod*f[n-4*i]%mod;
-		}
-		printf("%lld\n",ans%mod);
-	}
-}
-}  // namespace Std
-#undef int
-int main(){
-	Std::main();
-	return 0;
-}
-```
+1. 如果所有数都一样，$\gcd$ 是它本身。
+2. 其他情况，根据辗转相减原理， $\gcd$ 的范围为 $[1,r-l]$。
 
+所以我们分成两部分来算，所有数都相等的部分如果 $l=0$ 则有一次贡献，否则没有贡献。
+
+存在不同的数，枚举 $\mu$ 的范围为 $[1,r-l]$ ，这样复杂度就是对的。
+
+#### [$\color{black}\text{P4449 于神之怒加强版}$](https://www.luogu.com.cn/problem/P4449)
+
+题意：多测，同一数据点的每组数据的 $k$ 都相等，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\gcd(i,j)^k$，$1\le T\le2\times10^3$，$1\le n,m,k\le5\times10^6$。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\gcd(i,j)^k
+&=\sum\limits_{d=1}^{n}d^k\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{d}\rfloor}[\gcd(i,j)=1]\\
+&=\sum\limits_{d=1}^{n}d^k\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)\lfloor\frac{n}{de}\rfloor\lfloor\frac{m}{de}\rfloor\\
+&=\sum\limits_{T=1}^{n}\lfloor\frac{n}{T}\rfloor\lfloor\frac{m}{T}\rfloor\sum\limits_{d|T}d^k\mu(\frac{T}{d})
+\end{aligned}
+\end{equation}
+$$
+
+#### [$\color{black}\text{P3312 [SDOI2014]数表}$](https://www.luogu.com.cn/problem/P3312)
+
+题意：多测，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\sigma_1(\gcd(i,j))[\sigma_1(\gcd(i,j))\le a]$。$1\le T\le2\times10^4$，$1\le n,m\le10^5$，$|a|\le 10^9$。
+
+先考虑没有 $a$ 的限制：
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\sigma_1(\gcd(i,j))
+&=\sum\limits_{d=1}^{n}\sigma_1(d)\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{d}\rfloor}[\gcd(i,j)=1]\\
+&=\sum\limits_{d=1}^{n}\sigma_1(d)\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)\lfloor\frac{n}{de}\rfloor \lfloor\frac{m}{de}\rfloor\\
+&=\sum\limits_{T=1}^{n}\sum\limits_{d|T}\sigma_1(d)\mu(\frac{T}{d})\lfloor\frac{n}{T}\rfloor \lfloor\frac{m}{T}\rfloor
+\end{aligned}
+\end{equation}
+$$
+有 $a$ 的限制，但如果各询问 $a$ 是单调的，这个问题就变成了单点修改区间查询问题，所以把询问离线并按照 $a$ 排序，考虑 $a$ 增大时，也会有一些新的 $\sigma_1(d)$ 会对所有 $d$ 的倍数产生贡献，可以在树状数组上进行 $\frac{n}{d}$ 次单点修改，再进行 $\sqrt{n}$ 次区间查询，总复杂度为 $O(n\ln(n)\log(n)+T\sqrt{n}\log(n))$。
+
+#### [$\color{black}\text{P6222 「P6156 简单题」加强版}$](https://www.luogu.com.cn/problem/P6222)
+
+题意：多测，同一数据点的每组数据的 $k$ 都相等，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n}(i+j)^k\gcd(i,j)\mu^2(\gcd(i,j))$，$1\le n\le10^7$，$1\le T\le2\times10^4$，$1\le k\le2^{31}$。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n}(i+j)^k\gcd(i,j)\mu^2(\gcd(i,j))
+&=\sum\limits_{d=1}^{n}d\mu^2(d)d^k\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{d}\rfloor}[\gcd(i,j)=1](i+j)^k\\
+&=\sum\limits_{d=1}^{n}d\mu^2(d)d^k\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{d}\rfloor}(i+j)^k\sum\limits_{e|\gcd(i,j)}\mu(e)\\
+&=\sum\limits_{d=1}^{n}d\mu^2(d)d^k\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)e^k\sum\limits_{i=1}^{\lfloor\frac{n}{de}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{de}\rfloor}(i+j)^k\\
+&=\sum\limits_{T=1}^{n}T^k\sum\limits_{d|T}d\mu^2(d)\mu(\frac{T}{d})\sum\limits_{i=1}^{\lfloor\frac{n}{T}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{T}\rfloor}(i+j)^k\\
+\end{aligned}
+\end{equation}
+$$
+设 $S_1(x)=\sum\limits_{i=1}^{x}i^k$ ，$S_2(x)=\sum\limits_{i=1}^{x}S_1(i)$，$g(x)=\sum\limits_{i=1}^{x}\sum\limits_{j=1}^{x}(i+j)^k$。
+$$
+\begin{equation}
+\begin{aligned}
+g(x)
+&=\sum\limits_{i=1}^{x}\sum\limits_{j=1}^{x}(i+j)^k\\
+&=\sum\limits_{i=1}^{x}\sum_{j=i+1}^{i+x}j^k\\
+&=\sum\limits_{i=1}^{x}S_1(i+x)-S_1(i)\\
+&=\sum\limits_{i=x+1}^{2\times x}S_1(i)-\sum\limits_{i=1}^{x}S_1(i)\\
+&=S_2(2\times x)-2S_2(x)
+\end{aligned}
+\end{equation}
+$$
+$S_2$ 可以预处理，现在复杂度在于求 $f(x)=\sum\limits_{d|x}d\mu^2(d)\mu(\frac{x}{d})$，由于是两个积性函数卷起来，$f(x)$ 是积性函数，考虑 $f(x)$ 的处理方法。
+
+1. $f(1)=1$。
+2. $x$ 有不止一个质因子，则 $f(x)=f(d^k)\times f(\frac{x}{d^k})$，其中 $d$ 是最小质因子，$k$ 是其个数。
+3. $x$ 只有一个质因子，令 $x=d^k$：
+   * $k=1$：$f(x)=x-1$。
+   * $k=2$：$f(x)=-d$。
+   * $k\ge 3$：考虑到无论怎么分，$\mu(d)$ 和 $\mu(\frac{n}{d})$ 至少有一个是平方因子，所以结果是 $0$。
+
+所以可以记录每个数的最小质因子的个数来更新。
+
+## 杜教筛
+
+$f(x)$ 是积性函数，求 $f(x)$ 的前缀和。
+
+设 $f(x)$ 的前缀和是 $S(x)$，我们钦定一个积性函数 $g(x)$，接下来表示一下 $f*g$ 的前缀和：
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}(f*g)(i)
+&=\sum\limits_{i=1}^{n}\sum\limits_{j|i}g(j)f(\frac{i}{j})\\
+&=\sum\limits_{j=1}^{n}g(j)\sum\limits_{i=1}^{\lfloor\frac{n}{j}\rfloor}f(i)\\
+&=\sum\limits_{i=1}^{n}g(i)S(\lfloor\frac{n}{i}\rfloor)
+\end{aligned}
+\end{equation}
+$$
+现在要求 $S(n)$，如果我们知道 $g(1)$，可以把这个问题转化为求 $g(1)S(n)$：
+$$
+\begin{equation}
+\begin{aligned}
+g(1)S(n)
+&=\sum\limits_{i=1}^{n}g(i)S(\lfloor\frac{n}{i}\rfloor)-\sum\limits_{i=2}^{n}g(i)S(\lfloor\frac{n}{i}\rfloor)\\
+&=\sum\limits_{i=1}^{n}(f*g)(n)-\sum_{i=2}^{n}g(i)S(\lfloor\frac{n}{i}\rfloor)
+\end{aligned}
+\end{equation}
+$$
+如果我们能够快速求出 $f*g$ 的前缀和和 $g$ 的前缀和，第二部分使用整除分块递归处理，并记忆化，可以实现 $O(n^{\frac{3}{4}})$ 求解；如果能够预处理出 $S$ 的前 $n^{\frac{2}{3}}$，复杂度可以降低为 $O(n^{\frac{2}{3}})$。
+
+### 例题
+
+#### 求 $\sum\limits_{i=1}^{n}\varphi(i)$
+
+$$
+\varphi*\text{1}=id
+$$
+
+#### 求 $\sum\limits_{i=1}^{n}\mu(i)$
+
+$$
+\mu*\text{1}=\varepsilon
+$$
+
+#### [$\color{black}\text{P3768 简单的数学题}$](https://www.luogu.com.cn/problem/P3768)
+
+题意：求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n}ij\gcd(i,j)$，$n\le10^{10}$。
+$$
+\begin{equation}
+\begin{aligned}
+\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n}ij\gcd(i,j)
+&=\sum\limits_{d=1}^{n}d^3\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{d}\rfloor}ij[\gcd(i,j)=1]\\
+&=\sum\limits_{d=1}^{n}d^3\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)e^2\sum\limits_{i=1}^{\lfloor\frac{n}{de}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{de}\rfloor}ij\\
+&=\sum\limits_{T=1}^{n}T^2\sum\limits_{d|T}d\mu(\frac{T}{d})\sum\limits_{i=1}^{\lfloor\frac{n}{T}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{T}\rfloor}ij\\
+&=\sum\limits_{T=1}^{n}T^2\varphi(T)\sum\limits_{i=1}^{\lfloor\frac{n}{T}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{n}{T}\rfloor}ij
+\end{aligned}
+\end{equation}
+$$
+后面可以整除分块，关键复杂度在于前面，设 $f(x)=x^2\varphi(x)$，$g(x)=x^2$。
+$$
+\begin{equation}
+\begin{aligned}
+(f*g)(x)
+&=\sum\limits_{d|x}d^2\varphi(d)(\frac{x}{d})^2\\
+&=x^2\sum\limits_{d|x}\varphi(d)\\
+&=x^3
+\end{aligned}
+\end{equation}
+$$
+$\sum\limits_{i=1}^{n}i^3=(\sum\limits_{i=1}^{n}i)^2$，这样就可以快速求出 $g$ 和 $f*g$ 的前缀和了。
