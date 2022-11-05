@@ -209,7 +209,6 @@ $$
 
 题意：给定 $n,m$，求 $\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\text{lcm}(i,j)$，$1\le n,m\le10^7$。
 $$
-\begin{equation}
 \begin{aligned}
 \sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\text{lcm}(i,j)
 &=\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\frac{ij}{\gcd(i,j)}\\
@@ -217,7 +216,6 @@ $$
 &=\sum\limits_{d=1}^{n}d\sum\limits_{i=1}^{\lfloor\frac{n}{d}\rfloor}\sum\limits_{j=1}^{\lfloor\frac{m}{d}\rfloor}ij[\gcd(i,j)=1]\\
 &=\sum\limits_{d=1}^{n}d\sum\limits_{e=1}^{\lfloor\frac{n}{d}\rfloor}\mu(e)e^2\frac{\lfloor\frac{n}{de}\rfloor(\lfloor\frac{n}{de}\rfloor+1)}{2}\frac{\lfloor\frac{m}{de}\rfloor(\lfloor\frac{m}{de}\rfloor+1)}{2}\\
 \end{aligned}
-\end{equation}
 $$
 前后分别数论分块即可。
 
