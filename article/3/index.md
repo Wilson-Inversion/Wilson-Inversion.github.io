@@ -6,7 +6,7 @@
 
 枚举景点 B 和景点 C，求出以每个点为景点 B 的情况下，权值最大/次大/第三大的景点 A，直接 $3\times3$ 更新答案。两两距离直接 $n$ 次 BFS 预处理好就可以。
 
-```
+```c++
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -89,7 +89,7 @@ int main() {
 
 用线段树分别维护序列 $a$ 和序列 $b$ 的区间最小值，最大值，最小正数，最大负数，之后 $4\times4$ 求答案即可，不需要分类讨论。
 
-```
+```c++
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -156,7 +156,7 @@ int main() {
 
 题目中要求满足整个图是奇环内向森林，但也可以直接看作每个点的出度恰好为 $1$。给每个点随机赋一个权值 $a_i$，并构造全图 hash 值为 $\sum\limits_{i=1}^{n}a_i\times out_i$，其中 $out_i$ 表示 $i$ 节点的出度。当且仅当 hash 值为全图点权和时答案为 `YES`。
 
-```
+```c++
 #include <bits/stdc++.h>
 using namespace std;
 #define int unsigned long long
@@ -229,7 +229,7 @@ $$
 
 倍增和树上矩阵实现，矩阵向上和向下转移都要存。
 
-```
+```c++
 #include <bits/stdc++.h>
 using namespace std;
 #define int long long
